@@ -1,65 +1,63 @@
 import pandas as pd
-import google.generativeai as genai
+from google import genai
+import time
 
-# 1. Configura tu API Key de Google AI Studio
-# Consíguela en: https://aistudio.google.com/app/apikey
-GENAI_API_KEY = "AIzaSyDFabjhHXIK5ftyk7SRQBjdykWJLPGzN5c"
-genai.configure(api_key=GENAI_API_KEY)
+# --- CONFIGURACIÓN ---
+API_KEY = "TU_API_KEY_AQUI"
+client = genai.Client(api_key="AIzaSyAaQRfSMsPr16i06uOUtcX-x_aqCI2Zs5Y")
 
-# 2. Cargamos tu "Base de Datos" de frutas
+# Usamos exactamente el ID que salió en tu lista
+MODEL_ID = "gemini-2.5-flash" 
+
 df = pd.read_csv('historial_frutas_vegetales.csv')
 
 def buscar_contexto_en_csv(pregunta_usuario):
-    """
-    Busca productos mencionados en la pregunta dentro del CSV
-    para darle contexto real al LLM.
-    """
-    # Buscamos coincidencias de palabras clave en la columna 'producto'
+    # Una búsqueda un poco más flexible por si escribes en plural
     productos_encontrados = []
+    palabras_usuario = pregunta_usuario.lower().split()
+    
     for producto in df['producto'].tolist():
+        # Si el nombre del producto está en la pregunta
         if producto.lower() in pregunta_usuario.lower():
-            # Extraemos la info de esa fila
             info = df[df['producto'] == producto].iloc[0]
             contexto_item = (
-                f"- {info['producto']}: Dura {info['vida_util_dias']} días. "
-                f"Cuidado con: {info['signos_deterioro']}. "
-                f"Tip: {info['tips_conservacion']}. "
-                f"Uso de emergencia: {info['uso_emergencia']}."
+                f"- {info['producto']}: Vida útil {info['vida_util_dias']} días. "
+                f"Signos de daño: {info['signos_deterioro']}. "
+                f"Uso de emergencia (Receta): {info['uso_emergencia']}."
             )
             productos_encontrados.append(contexto_item)
     
-    return "\n".join(productos_encontrados) if productos_encontrados else "No hay historial específico para estos productos."
+    return "\n".join(productos_encontrados) if productos_encontrados else "No tengo historial de estos productos."
 
 def consultar_gemini_con_rag(pregunta_usuario):
-    # Recuperamos la info de nuestro CSV
     contexto_historico = buscar_contexto_en_csv(pregunta_usuario)
     
-    # Armamos el prompt Pro con el estilo que definimos
-    prompt_final = f"""
-    Eres un experto en gestión de desperdicio de alimentos y economía del hogar.
+    # Prompt optimizado para tu problema de desperdicio
+    prompt = f"""
+    Actúa como un experto en gestión de alimentos. 
+    Ayuda al usuario a evitar el desperdicio basándote en este historial de su cocina:
     
-    CONTEXTO DEL HISTORIAL (Base de datos):
+    HISTORIAL RECUPERADO:
     {contexto_historico}
     
     PREGUNTA DEL USUARIO:
     "{pregunta_usuario}"
     
-    INSTRUCCIONES:
-    1. Usa el contexto del historial para dar consejos específicos.
-    2. Si el producto está por echarse a perder, prioriza la 'Receta de rescate'.
-    3. Sé breve, práctico y empático.
+    Respuesta breve, empática y directa:
     """
-    
-    # Inicializamos el modelo (Gemini 1.5 o 2.0 Flash)
-    model = genai.GenerativeModel('gemini-1.5-flash') # O 'gemini-2.0-flash-exp'
-    
-    response = model.generate_content(prompt_final)
-    return response.text
 
-# --- PRUEBA DE FUEGO ---
-# Dani, aquí es donde sucede la magia:
-tu_duda = "Oye, compré muchas espinacas y se me están olvidando, ¿qué hago para que no se mueran?"
+    try:
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        if "429" in str(e):
+            return "❌ Te acabaste la cuota por este minuto, Dani. Espera 30 segunditos."
+        return f"❌ Error: {e}"
 
-print("--- Consultando a Gemini con tu RAG local ---")
-respuesta = consultar_gemini_con_rag(tu_duda)
-print(respuesta)
+# --- EJECUCIÓN ---
+print(f"--- Usando el modelo: {MODEL_ID} ---")
+pregunta = input("¿Qué quieres saber sobre tus frutas y verduras? ")
+print(consultar_gemini_con_rag(pregunta))
