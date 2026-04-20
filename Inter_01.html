@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>AprovechaFood · Desperdicio Cero | Frutas & Verduras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f5ea;
+            color: #1a2c17;
+            overflow-x: hidden;
+        }
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+        /* SIDEBAR MEJORADO */
+        .sidebar {
+            width: 280px;
+            background: #0f2c0c;
+            color: #e0f0d8;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 3px 0 20px rgba(0,0,0,0.1);
+            z-index: 20;
+        }
+        .sidebar-header {
+            padding: 32px 24px 20px;
+            border-bottom: 1px solid #2c5426;
+        }
+        .sidebar-header h2 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #d0f0bd, #9fd183);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .nav-menu {
+            flex: 1;
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #cbe5c0;
+        }
+        .nav-item i { width: 26px; font-size: 1.2rem; }
+        .nav-item.active, .nav-item:hover {
+            background: #2b5724;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .main-content {
+            flex: 1;
+            padding: 28px 36px;
+            overflow-y: auto;
+        }
+        .top-bar {
+            background: white;
+            border-radius: 60px;
+            padding: 12px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .greeting-badge {
+            background: #eef3e9;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+        }
+        .card {
+            background: white;
+            border-radius: 32px;
+            padding: 1.6rem;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.03);
+            border: 1px solid #e2efd9;
+            transition: 0.2s;
+        }
+        .card-warning {
+            border-left: 6px solid #f39c12;
+            background: #fffcf0;
+        }
+        .grid-2cols {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 28px;
+            margin-bottom: 28px;
+        }
+        .badge-critico { background: #ffe2d6; color: #c0392b; padding: 4px 12px; border-radius: 60px; font-size: 0.7rem; font-weight: 700; }
+        .badge-proximo { background: #fff0cf; color: #b46f0b; }
+        .badge-seguro { background: #e1f3e1; color: #2d6a2b; }
+        .btn-sm {
+            background: #eef2e9;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+        .btn-primary { background: #2b6e3c; color: white; }
+        .btn-primary:hover { background: #1e552e; transform: scale(0.97);}
+        .btn-outline { background: transparent; border: 1px solid #bdd6ae; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .mt-3 { margin-top: 1.2rem; }
+        .mb-2 { margin-bottom: 0.8rem; }
+        .progress-bar-bg { background: #e2ecda; border-radius: 20px; height: 8px; width: 100%; max-width: 120px; }
+        .progress-fill { background: #4c9f2f; height: 8px; border-radius: 20px; }
+        .text-urgent { color: #e67e22; font-weight: 700; }
+        .inventory-table { width: 100%; border-collapse: collapse; }
+        .inventory-table th, .inventory-table td { padding: 14px 8px; text-align: left; border-bottom: 1px solid #e5f0dd; }
+        .floating-feedback {
+            position: fixed; bottom: 24px; right: 24px; background: #1f3b1c; color: white; padding: 12px 24px;
+            border-radius: 60px; font-weight: 500; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+            backdrop-filter: blur(4px); display: none;
+        }
+        @media (max-width: 780px) { .sidebar { width: 85px; } .sidebar-header p, .nav-item span { display: none; } .main-content { padding: 20px; } }
+        .icon-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 8px; }
+    </style>
+</head>
+<body>
+<div class="app-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-seedling"></i> AprovechaFood</h2>
+            <p>zero waste · smart kitchen</p>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item active" data-section="dashboard"><i class="fas fa-chart-line"></i> <span>Dashboard</span></div>
+            <div class="nav-item" data-section="inventario"><i class="fas fa-apple-alt"></i> <span>Mi despensa</span></div>
+            <div class="nav-item" data-section="planificacion"><i class="fas fa-list-check"></i> <span>Plan compras</span></div>
+            <div class="nav-item" data-section="recetas"><i class="fas fa-utensils"></i> <span>Recetas + Chef</span></div>
+            <div class="nav-item" data-section="historial"><i class="fas fa-chart-simple"></i> <span>Tendencias</span></div>
+        </div>
+        <div style="padding: 20px; font-size:0.7rem; border-top:1px solid #2c5426;"><i class="fas fa-lightbulb"></i> Activa el modo chef para no desperdiciar</div>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <div><i class="fas fa-hand-sparkles"></i> <strong>Hola, María</strong> · gestión inteligente</div>
+            <div class="greeting-badge"><i class="fas fa-bell"></i> 3 alertas activas · frutas y verduras</div>
+        </div>
+
+        <!-- SECCIONES -->
+        <!-- DASHBOARD mejorado con más botones -->
+        <div id="dashboardSection" class="section-content">
+            <div class="grid-2cols">
+                <div class="card">
+                    <h3><i class="fas fa-clock"></i> Alerta Inmediata</h3>
+                    <div class="mt-3" style="background:#ffefe5; border-radius: 24px; padding: 14px;">
+                        <div class="flex-between"><span>🍓 Fresas (críticas)</span><span class="badge-critico"><24h</span></div>
+                        <div class="flex-between mt-3"><span>🥬 Espinacas (marchitas)</span><span class="badge-critico">1 día</span></div>
+                        <div class="flex-between mt-3"><span>🥦 Brócoli</span><span class="badge-critico">1 día</span></div>
+                        <button class="btn-sm btn-primary mt-3" id="btnConsumirCriticos"><i class="fas fa-check-double"></i> Marcar todos como usados</button>
+                        <button class="btn-sm btn-outline mt-3" id="btnRecordatorioUrgente"><i class="far fa-bell"></i> Recordatorio en 4h</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-chart-pie"></i> Ahorro estimado</h3>
+                    <p class="mt-3">🍅🍆 Desperdicio evitado esta semana: <strong>2.8 kg</strong></p>
+                    <div class="progress-bar-bg mt-3"><div class="progress-fill" style="width:74%"></div></div>
+                    <p class="mt-3"><i class="fas fa-coins"></i> Ahorro potencial: <strong>$210 MXN</strong> si planificas mejor</p>
+                    <button class="btn-sm" id="btnSimularAhorro"><i class="fas fa-chart-line"></i> Simular ahorro mensual</button>
+                </div>
+                <div class="card card-warning">
+                    <h3><i class="fas fa-calendar-week"></i> Predicción caducidad</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>🥑 Aguacates → 2 días (usa en guacamole)</li>
+                        <li>🍆 Berenjena → 3 días (hornear)</li>
+                        <li>🍌 Plátanos manchados → batido</li>
+                    </ul>
+                    <button class="btn-sm mt-3" id="btnGenerarMenuSemana"><i class="fas fa-receipt"></i> Generar menú semanal anti-desperdicio</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="flex-between"><h3><i class="fas fa-leaf"></i> Frutas y verduras en riesgo</h3><button class="btn-sm" id="btnExportarListaRiesgo"><i class="fas fa-download"></i> Exportar lista</button></div>
+                <div id="riesgoPreview" style="margin-top: 12px; font-size:0.9rem;">🥑 Aguacate · 🥬 Espinacas · 🍓 Fresas · 🥦 Brócoli</div>
+            </div>
+        </div>
+
+        <!-- INVENTARIO con funciones extra -->
+        <div id="inventarioSection" class="section-content" style="display:none;">
+            <div class="card">
+                <div class="flex-between"><h3><i class="fas fa-boxes"></i> Frutas y Verduras</h3><div><button class="btn-sm" id="addProductoMock"><i class="fas fa-plus"></i> + Simular compra</button><button class="btn-sm" id="ordenarPorCaducidad"><i class="fas fa-sort-amount-down"></i> Ordenar críticos</button></div></div>
+                <div class="table-wrapper">
+                    <table class="inventory-table" id="inventoryTableBody"></table>
+                </div>
+                <div class="flex-between mt-3"><button class="btn-sm btn-primary" id="modoChefRapido"><i class="fas fa-hat-chef"></i> Modo Chef (sugerir recetas con lo que caduca)</button><button class="btn-sm" id="limpiarConsumidos"><i class="fas fa-trash-alt"></i> Eliminar consumidos</button></div>
+            </div>
+        </div>
+
+        <!-- PLANIFICACION COMPRAS -->
+        <div id="planificacionSection" class="section-content" style="display:none;">
+            <div class="card">
+                <h3><i class="fas fa-cart-shopping"></i> Plan de compras inteligente</h3>
+                <p>Según tu consumo actual, evita comprar productos que ya tienes en exceso.</p>
+                <div class="flex-between mt-3"><span><i class="fas fa-ban"></i> No comprar: Aguacates (ya tienes 2), Fresas</span><button class="btn-sm" id="btnListaNoComprar">Actualizar lista negra</button></div>
+                <div class="flex-between mt-3"><span><i class="fas fa-shopping-basket"></i> Necesitas comprar: Lechuga, Zanahorias, Pepino</span><button class="btn-sm btn-primary" id="btnExportarListaCompra">Exportar lista compras</button></div>
+                <button class="btn-sm mt-3" id="btnPresupuestoSugerido"><i class="fas fa-calculator"></i> Calcular presupuesto semanal</button>
+                <div id="presupuestoResultado" class="mt-3" style="background:#f2f7ec; border-radius: 20px; padding: 12px;"></div>
+            </div>
+        </div>
+
+        <!-- RECETAS Y FUNCIONES CHEF -->
+        <div id="recetasSection" class="section-content" style="display:none;">
+            <div class="card">
+                <h3><i class="fas fa-robot"></i> Asistente Chef Anti-Desperdicio</h3>
+                <div class="flex-between"><button class="btn-sm btn-primary" id="btnRecetasCriticas"><i class="fas fa-lightbulb"></i> Recetas con productos críticos</button><button class="btn-sm" id="btnRandomReceta"><i class="fas fa-dice-d6"></i> Receta aleatoria</button></div>
+                <div id="recetaSugerida" class="mt-3" style="background:#faf7e1; border-radius: 24px; padding: 16px;">🔍 Haz clic para recibir ideas para aprovechar frutas/verduras</div>
+            </div>
+            <div class="card">
+                <h4><i class="fas fa-clock"></i> Planificación de comidas</h4>
+                <button class="btn-sm" id="btnPlanComidasDia"><i class="fas fa-calendar-day"></i> Plan para hoy (aprovecha lo que vence)</button>
+                <div id="planComidasOutput" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- HISTORIAL Y TENDENCIAS -->
+        <div id="historialSection" class="section-content" style="display:none;">
+            <div class="card">
+                <h3><i class="fas fa-chart-line"></i> Evolución del desperdicio</h3>
+                <div class="flex-between"><span>📉 Reducción último mes: 31% menos desperdicio</span><button class="btn-sm" id="btnReiniciarMetricasDemo">Resetear métricas (demo)</button></div>
+                <div class="mt-3"><strong>Días promedio de frescura al consumir:</strong> 4.5 días (+1.2 vs mes pasado)</div>
+                <div class="progress-bar-bg mt-3"><div class="progress-fill" style="width:72%"></div></div>
+                <p class="mt-3"><i class="fas fa-chart-simple"></i> Productos más desperdiciados: espinacas, fresas, plátanos. Activa alertas tempranas.</p>
+                <button class="btn-sm mt-3" id="btnGenerarReporte">Generar reporte PDF (simulado)</button>
+            </div>
+        </div>
+        <div class="floating-feedback" id="globalFeedback">✅ Acción completada</div>
+    </main>
+</div>
+
+<script>
+    // INVENTARIO DE FRUTAS Y VERDURAS
+    let inventory = [
+        { id: 1, name: "🍓 Fresas", location: "Refri", freshness: 18, daysLeft: 0.8, critical: true, category: "fruta" },
+        { id: 2, name: "🥬 Espinacas", location: "Nevera", freshness: 12, daysLeft: 0.6, critical: true, category: "verdura" },
+        { id: 3, name: "🥑 Aguacates", location: "Despensa", freshness: 55, daysLeft: 2, critical: true, category: "fruta" },
+        { id: 4, name: "🥦 Brócoli", location: "Nevera", freshness: 28, daysLeft: 1, critical: true, category: "verdura" },
+        { id: 5, name: "🍅 Tomates", location: "Encimera", freshness: 62, daysLeft: 3, critical: false, category: "verdura" },
+        { id: 6, name: "🍌 Plátanos", location: "Frutería", freshness: 44, daysLeft: 2.5, critical: true, category: "fruta" },
+        { id: 7, name: "🍎 Manzanas", location: "Frigo", freshness: 85, daysLeft: 9, critical: false, category: "fruta" }
+    ];
+
+    function renderInventoryTable() {
+        const tbody = document.getElementById('inventoryTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        inventory.forEach(item => {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerText = item.name;
+            row.insertCell(1).innerText = item.location;
+            row.insertCell(2).innerHTML = `<div class="progress-bar-bg"><div class="progress-fill" style="width:${item.freshness}%; background:${item.critical ? '#e67e22' : '#4c9f2f'}"></div></div> ${item.freshness}%`;
+            row.insertCell(3).innerHTML = item.critical ? `<span class="text-urgent">${item.daysLeft} días</span>` : `${item.daysLeft} días`;
+            const btnCell = row.insertCell(4);
+            const useBtn = document.createElement('button');
+            useBtn.innerText = '🍲 Usar en comida';
+            useBtn.className = 'btn-sm';
+            useBtn.onclick = () => {
+                const idx = inventory.findIndex(i => i.id === item.id);
+                if (idx !== -1) {
+                    inventory.splice(idx, 1);
+                    renderInventoryTable();
+                    showFeedback(`✅ ${item.name} usado · evitaste desperdicio.`);
+                }
+            };
+            btnCell.appendChild(useBtn);
+        });
+        if (inventory.length === 0) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">🎉 No hay productos, ¡desperdicio cero!</td></tr>';
+    }
+
+    function showFeedback(msg) {
+        const fb = document.getElementById('globalFeedback');
+        fb.innerText = msg;
+        fb.style.display = 'block';
+        setTimeout(() => fb.style.display = 'none', 2800);
+    }
+
+    // Navegacion
+    const sectionsMap = { dashboard:'dashboardSection', inventario:'inventarioSection', planificacion:'planificacionSection', recetas:'recetasSection', historial:'historialSection' };
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const sec = item.getAttribute('data-section');
+            Object.values(sectionsMap).forEach(s => document.getElementById(s).style.display = 'none');
+            if (sec && sectionsMap[sec]) document.getElementById(sectionsMap[sec]).style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+        });
+    });
+
+    // Funciones extra y botones
+    document.getElementById('btnConsumirCriticos')?.addEventListener('click', () => {
+        inventory = inventory.filter(i => !(i.critical === true && (i.name.includes('Fresa') || i.name.includes('Espinacas') || i.name.includes('Brócoli'))));
+        renderInventoryTable();
+        showFeedback('🍲 Productos críticos marcados como consumidos. ¡Buen provecho!');
+    });
+    document.getElementById('btnRecordatorioUrgente')?.addEventListener('click', () => showFeedback('🔔 Recordatorio: revisa tus fresas y espinacas en 4 horas.'));
+    document.getElementById('btnSimularAhorro')?.addEventListener('click', () => showFeedback('💰 Proyectado: Ahorro anual de $2,450 MXN si reduces desperdicio de frutas/verduras.'));
+    document.getElementById('btnGenerarMenuSemana')?.addEventListener('click', () => showFeedback('📅 Menú sugerido: Lunes: crema de brócoli, Martes: batido de fresas, Miércoles: guacamole, Jueves: espinacas salteadas.'));
+    document.getElementById('btnExportarListaRiesgo')?.addEventListener('click', () => showFeedback('📄 Lista de riesgo exportada (simulada): Fresas, Espinacas, Brócoli, Aguacate.'));
+    document.getElementById('addProductoMock')?.addEventListener('click', () => {
+        inventory.push({ id: Date.now(), name: "🍆 Berenjena", location: "Despensa", freshness: 90, daysLeft: 5, critical: false, category: "verdura" });
+        renderInventoryTable();
+        showFeedback('➕ Berenjena agregada (simula compra excesiva). Revisa tu plan de compras.');
+    });
+    document.getElementById('ordenarPorCaducidad')?.addEventListener('click', () => {
+        inventory.sort((a,b) => a.daysLeft - b.daysLeft);
+        renderInventoryTable();
+        showFeedback('📌 Ordenados por criticidad: los que caducan primero arriba.');
+    });
+    document.getElementById('modoChefRapido')?.addEventListener('click', () => {
+        const criticos = inventory.filter(i => i.critical && i.daysLeft <= 2).map(i => i.name).join(', ');
+        showFeedback(`👨‍🍳 Modo Chef activado: usa YA ${criticos || 'tus productos críticos'}. Prueba salteado mixto o smoothie.`);
+    });
+    document.getElementById('limpiarConsumidos')?.addEventListener('click', () => {
+        inventory = inventory.filter(i => i.critical === false || i.daysLeft > 1);
+        renderInventoryTable();
+        showFeedback('🧹 Productos consumidos eliminados del inventario.');
+    });
+    document.getElementById('btnListaNoComprar')?.addEventListener('click', () => showFeedback('🚫 Lista negra actualizada: NO comprar aguacates, fresas ni plátanos (ya tienes stock).'));
+    document.getElementById('btnExportarListaCompra')?.addEventListener('click', () => showFeedback('📝 Lista de compras exportada: Lechuga, Zanahorias, Pepino, Tomates. Presupuesto: $160 MXN.'));
+    document.getElementById('btnPresupuestoSugerido')?.addEventListener('click', () => {
+        document.getElementById('presupuestoResultado').innerHTML = '<strong>💰 Presupuesto semanal sugerido:</strong> $210 MXN (compra solo lo necesario, evita desperdiciar). <button class="btn-sm mt-2" id="aplicarPresupuestoBtn">Aplicar consejo</button>';
+        document.getElementById('aplicarPresupuestoBtn')?.addEventListener('click', () => showFeedback('✅ Consejo aplicado: revisa tu despensa antes de comprar.'));
+    });
+    // Recetas
+    const recetasList = [
+        "🥣 Smoothie verde: espinacas + plátano + leche vegetal. Aprovecha hojas marchitas.",
+        "🍳 Tortilla de verduras: brócoli y espinacas salteadas con huevo.",
+        "🥑 Guacamole express: aguacates maduros + tomate + cebolla.",
+        "🍓 Compota de fresas: cocina fresas maduras con un poco de azúcar.",
+        "🍲 Crema de brócoli y calabacín: ideal para verduras próximas a vencer."
+    ];
+    document.getElementById('btnRecetasCriticas')?.addEventListener('click', () => {
+        const sugerencia = recetasList[Math.floor(Math.random() * recetasList.length)];
+        document.getElementById('recetaSugerida').innerHTML = `<i class="fas fa-hat-chef"></i> ${sugerencia}<br><button class="btn-sm mt-2" id="usarRecetaBtn">Añadir a mi plan</button>`;
+        document.getElementById('usarRecetaBtn')?.addEventListener('click', () => showFeedback('📌 Receta guardada en tu plan semanal.'));
+    });
+    document.getElementById('btnRandomReceta')?.addEventListener('click', () => {
+        const random = recetasList[Math.floor(Math.random() * recetasList.length)];
+        document.getElementById('recetaSugerida').innerHTML = `🍽️ ${random} <i class="fas fa-smile-wink"></i>`;
+    });
+    document.getElementById('btnPlanComidasDia')?.addEventListener('click', () => {
+        document.getElementById('planComidasOutput').innerHTML = `<div class="card" style="background:#eef3e9;">🍲 Comida: Salteado de brócoli y tomates. 🥤 Cena: batido de fresas y plátano. Aprovecha lo que caduca hoy.</div>`;
+        showFeedback('Plan diario generado: evita desperdiciar frutas y verduras.');
+    });
+    document.getElementById('btnGenerarReporte')?.addEventListener('click', () => showFeedback('📄 Reporte generado: Reducción de desperdicio de frutas en un 28% este trimestre.'));
+    document.getElementById('btnReiniciarMetricasDemo')?.addEventListener('click', () => showFeedback('📊 Métricas reiniciadas (simulación). Sigue así para reducir desperdicio.'));
+    
+    // Extra: botón exportar inventario general
+    const exportBtn = document.createElement('button');
+    if(document.getElementById('inventarioSection')) {
+        const inventarioCard = document.querySelector('#inventarioSection .card');
+        if(inventarioCard) {
+            const extraDiv = document.createElement('div');
+            extraDiv.className = 'flex-between mt-3';
+            extraDiv.innerHTML = `<button class="btn-sm btn-outline" id="exportarInventarioCompleto"><i class="fas fa-file-excel"></i> Exportar inventario (CSV simulado)</button>`;
+            inventarioCard.appendChild(extraDiv);
+            document.getElementById('exportarInventarioCompleto')?.addEventListener('click', () => showFeedback('📎 Inventario exportado: fresas, espinacas, aguacates, brócoli, etc. Revisa tu despensa antes de comprar.'));
+        }
+    }
+
+    renderInventoryTable();
+    // Inicializar sección dashboard
+    document.getElementById('dashboardSection').style.display = 'block';
+</script>
+</body>
+</html>
